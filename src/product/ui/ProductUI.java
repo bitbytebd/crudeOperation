@@ -5,7 +5,10 @@
  */
 package product.ui;
 
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,7 +49,7 @@ public class ProductUI extends javax.swing.JFrame {
         price = new javax.swing.JTextField();
         qty = new javax.swing.JTextField();
         btnUpdate = new javax.swing.JButton();
-        btnSearch = new javax.swing.JButton();
+        btnEdit = new javax.swing.JButton();
         btnShow = new javax.swing.JButton();
         btnSave = new javax.swing.JButton();
         btnDelete = new javax.swing.JButton();
@@ -97,11 +100,11 @@ public class ProductUI extends javax.swing.JFrame {
             }
         });
 
-        btnSearch.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
-        btnSearch.setText("SEARCH");
-        btnSearch.addActionListener(new java.awt.event.ActionListener() {
+        btnEdit.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        btnEdit.setText("EDIT");
+        btnEdit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSearchActionPerformed(evt);
+                btnEditActionPerformed(evt);
             }
         });
 
@@ -153,7 +156,7 @@ public class ProductUI extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(108, 108, 108)
-                                .addComponent(btnSearch)
+                                .addComponent(btnEdit)
                                 .addGap(18, 18, 18)
                                 .addComponent(btnUpdate))
                             .addGroup(layout.createSequentialGroup()
@@ -208,7 +211,7 @@ public class ProductUI extends javax.swing.JFrame {
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(27, 27, 27)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnSearch)
+                    .addComponent(btnEdit)
                     .addComponent(btnUpdate)
                     .addComponent(btnDelete))
                 .addGap(18, 18, 18)
@@ -220,7 +223,7 @@ public class ProductUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-         ProductService ps = new ProductService();
+        ProductService ps = new ProductService();
         Product p = new Product();
         p.setPid(Integer.valueOf(pid.getText()));
         p.setPname(pname.getText());
@@ -229,8 +232,9 @@ public class ProductUI extends javax.swing.JFrame {
         int status = 0;
         try {
             status = ps.update(p);
+            populateTable();
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            Logger.getLogger(ProductUI.class.getName()).log(Level.SEVERE, null, ex);
         }
         if(status > 0)
             JOptionPane.showMessageDialog(rootPane, "Updated");
@@ -239,8 +243,9 @@ public class ProductUI extends javax.swing.JFrame {
    
     }//GEN-LAST:event_btnUpdateActionPerformed
     
-    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
-       int pid = Integer.valueOf(this.pid.getText());
+    private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
+//       int pid = Integer.valueOf(this.pid.getText());
+  int pid = Integer.valueOf(table.getValueAt(table.getSelectedRow(), 0).toString());
        ProductService ps = new ProductService();
        try {
             Product p = ps.getByID(pid);
@@ -250,7 +255,7 @@ public class ProductUI extends javax.swing.JFrame {
         } catch (SQLException ex) {
             Logger.getLogger(ProductUI.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_btnSearchActionPerformed
+    }//GEN-LAST:event_btnEditActionPerformed
 
     private void btnShowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowActionPerformed
         ProductService ps = new ProductService();
@@ -305,7 +310,7 @@ public class ProductUI extends javax.swing.JFrame {
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         // TODO add your handling code here:
-         ProductService ps = new ProductService();
+        ProductService ps = new ProductService();
         Product p = new Product();
         p.setPid(Integer.valueOf(pid.getText()));
         p.setPname(pname.getText());
@@ -329,7 +334,8 @@ public class ProductUI extends javax.swing.JFrame {
         ProductService ps = new ProductService();
         int status = 0;
         try {
-            int sts = JOptionPane.showConfirmDialog(rootPane, "Do yo want to delete ?");
+            int sts = JOptionPane.showConfirmDialog(rootPane, "Do you want to delete ?");
+            
             if(sts == 0){
                 status = ps.delete(pid);
             }
@@ -344,6 +350,37 @@ public class ProductUI extends javax.swing.JFrame {
    
     }//GEN-LAST:event_btnDeleteActionPerformed
 
+    void populateTable(){
+        ProductService ps = new ProductService();
+        try {
+          ResultSet rs = ps.getResultSet();
+          ResultSetMetaData rsmeta = rs.getMetaData();
+            
+          
+          String[] columns = new String[rsmeta.getColumnCount()];
+          for (int i = 0; i < rsmeta.getColumnCount(); i++) {
+            columns[i] = rsmeta.getColumnName(i+1);
+          }
+          List<Object[]> list = new ArrayList<>();
+          while(rs.next()){
+                Object[] row = new Object[rsmeta.getColumnCount()];
+                for (int i = 0; i < row.length; i++) {
+                     row[i] = rs.getObject(i+1);
+                }
+                list.add(row);
+          }
+          Object[][] data = list.toArray(new Object[0][]);
+          DefaultTableModel model = new DefaultTableModel(data, columns);
+          table.setModel(model);
+
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ProductUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    
+    
+    }
+    
     private void pidActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pidActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_pidActionPerformed
@@ -389,8 +426,8 @@ public class ProductUI extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnEdit;
     private javax.swing.JButton btnSave;
-    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnShow;
     private javax.swing.JButton btnUpdate;
     private javax.swing.JLabel jLabel1;

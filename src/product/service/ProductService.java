@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JTextField;
 import product.model.Product;
 import product.util.DBConnection;
 
@@ -88,5 +89,12 @@ public class ProductService {
         }
         return products;
     }
-     
+
+   public ResultSet getResultSet() throws SQLException{
+        con = DBConnection.getConnection();
+        String sql = "select * from products";
+        PreparedStatement ps = con.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
+        return rs;
+    }
 }
